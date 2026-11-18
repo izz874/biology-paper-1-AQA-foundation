@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AQA Biology Paper 1 (Foundation) — 2026 Revision Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+    /* 3D Flashcard Flip Utilities */
+    .perspective {
+      perspective: 1000px;
+    }
+    .transform-style-3d {
+      transform-style: preserve-3d;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white">
+
+  <!-- TOP NAVIGATION -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="dna" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-lg tracking-tight text-white">BioRevise 2026</h1>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AQA Foundation</span>
+          </div>
+          <p class="text-xs text-slate-400">GCSE Biology Paper 1 • Target: Grade 5 (Max Tier Grade)</p>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <nav class="flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/50">
+        <button onclick="switchTab('flashcards')" id="tab-flashcards" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-500 text-slate-950 shadow">
+          <i data-lucide="layers" class="w-4 h-4"></i> Flashcards
+        </button>
+        <button onclick="switchTab('quiz')" id="tab-quiz" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:text-white">
+          <i data-lucide="Zap" class="w-4 h-4"></i> 10-Q Random Quiz
+        </button>
+        <button onclick="switchTab('bank')" id="tab-bank" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:text-white">
+          <i data-lucide="book-open" class="w-4 h-4"></i> All 100 Qs
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+
+    <!-- STATS BAR -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 flex items-center gap-4">
+        <div class="p-3 rounded-xl bg-blue-500/10 text-blue-400">
+          <i data-lucide="database" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Question Bank</p>
+          <p class="text-xl font-bold text-white">100 Presets</p>
+        </div>
+      </div>
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 flex items-center gap-4">
+        <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-400">
+          <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Cards Mastered</p>
+          <p class="text-xl font-bold text-white"><span id="stat-mastered">0</span> / 100</p>
+        </div>
+      </div>
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 flex items-center gap-4">
+        <div class="p-3 rounded-xl bg-amber-500/10 text-amber-400">
+          <i data-lucide="trophy" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Best Quiz Score</p>
+          <p class="text-xl font-bold text-white" id="stat-best-quiz">0 / 10</p>
+        </div>
+      </div>
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 flex items-center gap-4">
+        <div class="p-3 rounded-xl bg-purple-500/10 text-purple-400">
+          <i data-lucide="award" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Target Grade</p>
+          <p class="text-xl font-bold text-emerald-400">Grade 5 (Strong Pass)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         SECTION 1: FLASHCARDS MODE
+    =========================================== -->
+    <section id="view-flashcards" class="space-y-6">
+      <!-- Topic Filters & Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-800/40 p-4 rounded-2xl border border-slate-800">
+        <div class="flex flex-wrap items-center gap-2" id="topic-filters">
+          <button onclick="filterFlashcards('All')" class="topic-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 transition">All Topics (100)</button>
+          <button onclick="filterFlashcards('Cell Biology')" class="topic-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">1. Cell Biology (25)</button>
+          <button onclick="filterFlashcards('Organisation')" class="topic-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">2. Organisation (25)</button>
+          <button onclick="filterFlashcards('Infection & Response')" class="topic-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">3. Infection & Response (25)</button>
+          <button onclick="filterFlashcards('Bioenergetics & Practicals')" class="topic-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">4. Bioenergetics & Practicals (25)</button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="shuffleFlashcards()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-white transition">
+            <i data-lucide="shuffle" class="w-3.5 h-3.5"></i> Shuffle Deck
+          </button>
+          <button onclick="resetMastered()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-rose-500/20 hover:text-rose-300 text-slate-400 transition">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Progress
+          </button>
+        </div>
+      </div>
+
+      <!-- Flashcard Container -->
+      <div class="max-w-2xl mx-auto">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2 px-1">
+          <span id="fc-topic-badge" class="font-semibold text-emerald-400 uppercase tracking-wider">Topic 1: Cell Biology</span>
+          <span id="fc-counter" class="font-mono text-slate-300">Card 1 of 100</span>
+        </div>
+
+        <!-- 3D Flip Card -->
+        <div onclick="flipCard()" class="perspective cursor-pointer select-none h-80 sm:h-96 w-full">
+          <div id="flashcard-inner" class="transform-style-3d relative w-full h-full rounded-3xl shadow-2xl">
+            
+            <!-- FRONT OF CARD (QUESTION) -->
+            <div class="backface-hidden absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-slate-700/80 rounded-3xl p-8 flex flex-col justify-between">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold px-2.5 py-1 rounded-md bg-slate-700/70 text-slate-300">QUESTION</span>
+                <span id="fc-mastered-indicator" class="hidden text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                  <i data-lucide="check" class="w-3 h-3"></i> Mastered
+                </span>
+              </div>
+              <div class="my-auto text-center px-2">
+                <h2 id="fc-question" class="text-xl sm:text-2xl font-bold text-white leading-relaxed">
+                  Loading question...
+                </h2>
+              </div>
+              <div class="text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
+                <i data-lucide="mouse-pointer-click" class="w-4 h-4 text-emerald-400"></i> Click card or press <kbd class="px-1.5 py-0.5 bg-slate-700 rounded text-slate-200">Space</kbd> to flip
+              </div>
+            </div>
+
+            <!-- BACK OF CARD (ANSWER) -->
+            <div class="backface-hidden rotate-y-180 absolute inset-0 bg-gradient-to-br from-emerald-950/90 to-slate-900 border-2 border-emerald-500/50 rounded-3xl p-8 flex flex-col justify-between">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">AQA MARK SCHEME ANSWER</span>
+                <span class="text-xs text-slate-400">Paper 1 Foundation</span>
+              </div>
+              <div class="my-auto text-center px-2">
+                <p id="fc-answer" class="text-xl sm:text-2xl font-extrabold text-emerald-300 mb-3">
+                  Loading answer...
+                </p>
+                <p id="fc-explanation" class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-lg mx-auto">
+                  Loading explanation...
+                </p>
+              </div>
+              <div class="text-center text-xs text-slate-400">
+                Click again to flip back
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Flashcard Navigation Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mt-6">
+          <button onclick="prevCard()" class="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold transition active:scale-95">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i> Previous
+          </button>
+
+          <button onclick="toggleMastered()" id="btn-master" class="flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 border border-emerald-500/40 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 font-bold transition active:scale-95">
+            <i data-lucide="check-circle" class="w-5 h-5"></i> <span>Mark as Mastered</span>
+          </button>
+
+          <button onclick="nextCard()" class="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold transition active:scale-95">
+            Next <i data-lucide="arrow-right" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 2: 10-QUESTION RANDOM QUIZ MODE
+    =========================================== -->
+    <section id="view-quiz" class="hidden max-w-2xl mx-auto">
+      
+      <!-- Quiz Start Screen -->
+      <div id="quiz-start-screen" class="bg-slate-800/50 border border-slate-700 rounded-3xl p-8 text-center space-y-6">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+          <i data-lucide="zap" class="w-8 h-8"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-white mb-2">10-Question Mock Exam Quiz</h2>
+          <p class="text-slate-400 text-sm max-w-md mx-auto">
+            Every time you start, we randomly select <strong>10 questions</strong> out of our 100 AQA Paper 1 Foundation presets. Aim for 8/10 or higher to secure a <strong>Grade 5</strong>!
+          </p>
+        </div>
+
+        <div class="max-w-xs mx-auto text-left">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Select Quiz Topic:</label>
+          <select id="quiz-topic-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500">
+            <option value="All">All Paper 1 Topics (Mixed 100 Qs)</option>
+            <option value="Cell Biology">Topic 1: Cell Biology Only</option>
+            <option value="Organisation">Topic 2: Organisation Only</option>
+            <option value="Infection & Response">Topic 3: Infection & Response Only</option>
+            <option value="Bioenergetics & Practicals">Topic 4: Bioenergetics & Practicals Only</option>
+          </select>
+        </div>
+
+        <button onclick="startNewQuiz()" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-base shadow-lg shadow-emerald-500/20 transition active:scale-95">
+          Generate 10 Random Questions
+        </button>
+      </div>
+
+      <!-- Active Quiz Screen -->
+      <div id="quiz-active-screen" class="hidden space-y-6">
+        <div class="flex items-center justify-between bg-slate-800/60 px-5 py-3 rounded-2xl border border-slate-700/60">
+          <span id="quiz-progress-text" class="text-sm font-bold text-emerald-400">Question 1 of 10</span>
+          <span id="quiz-topic-pill" class="text-xs px-2.5 py-1 rounded-full bg-slate-700 text-slate-300">Cell Biology</span>
+          <span id="quiz-score-live" class="text-sm font-mono text-slate-300">Score: 0</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+          <div id="quiz-progress-bar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 10%"></div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-slate-800/40 border border-slate-700/80 rounded-3xl p-6 sm:p-8 space-y-6">
+          <h3 id="quiz-question-text" class="text-lg sm:text-xl font-bold text-white leading-snug">
+            Question text goes here...
+          </h3>
+
+          <!-- Options Grid -->
+          <div id="quiz-options" class="grid grid-cols-1 gap-3"></div>
+
+          <!-- Explanation Feedback Box -->
+          <div id="quiz-feedback" class="hidden p-4 rounded-2xl border text-sm space-y-1">
+            <p id="quiz-feedback-title" class="font-bold text-base"></p>
+            <p id="quiz-feedback-desc" class="text-slate-300"></p>
+          </div>
+
+          <button id="quiz-next-btn" onclick="nextQuizQuestion()" class="hidden w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition">
+            Next Question →
+          </button>
+        </div>
+      </div>
+
+      <!-- Quiz Results Screen -->
+      <div id="quiz-results-screen" class="hidden bg-slate-800/50 border border-slate-700 rounded-3xl p-8 text-center space-y-6">
+        <div class="w-20 h-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500 text-emerald-400 flex items-center justify-center mx-auto text-3xl font-extrabold" id="quiz-final-score">
+          9/10
+        </div>
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Estimated Foundation Tier Grade</span>
+          <h2 id="quiz-final-grade" class="text-3xl font-extrabold text-emerald-400 mt-1">Grade 5 — Strong Pass!</h2>
+          <p id="quiz-final-msg" class="text-sm text-slate-300 mt-2 max-w-md mx-auto"></p>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-3 pt-2">
+          <button onclick="startNewQuiz()" class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition">
+            Try Another 10 Random Questions
+          </button>
+          <button onclick="resetQuizView()" class="px-6 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold transition">
+            Change Topic
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==========================================
+         SECTION 3: ALL 100 QUESTIONS BANK
+    =========================================== -->
+    <section id="view-bank" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-800/40 p-4 rounded-2xl border border-slate-800">
+        <div class="relative w-full sm:w-96">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+          <input type="text" id="bank-search" oninput="renderQuestionBank()" placeholder="Search 100 questions (e.g., osmosis, heart, mitosis)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        <span id="bank-count" class="text-xs font-semibold text-slate-400">Showing 100 of 100 questions</span>
+      </div>
+
+      <div id="bank-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 mt-12">
+    <p>Built for Year 11 2026 Mocks • AQA GCSE Biology (8461 / 8464) Paper 1 Foundation Tier</p>
+  </footer>
+
+  <!-- ==========================================
+       JAVASCRIPT & 100 PRESET QUESTIONS DATABASE
+  =========================================== -->
+  <script>
+    // 100 AQA GCSE Biology Paper 1 Foundation Preset Questions
+    const QUESTIONS_DB = [
+      // TOPIC 1: CELL BIOLOGY (1 - 25)
+      { id: 1, topic: "Cell Biology", q: "What is the function of the nucleus in an animal or plant cell?", a: "Controls the activities of the cell and contains genetic material (DNA).", exp: "The nucleus encloses chromosomes made of DNA." },
+      { id: 2, topic: "Cell Biology", q: "Where do most chemical reactions take place inside a cell?", a: "Cytoplasm", exp: "Cytoplasm is a jelly-like substance where chemical reactions happen, controlled by enzymes." },
+      { id: 3, topic: "Cell Biology", q: "Which cell part controls what enters and leaves the cell?", a: "Cell membrane", exp: "The cell membrane is partially permeable, allowing small molecules like water and oxygen through." },
+      { id: 4, topic: "Cell Biology", q: "In which subcellular structure does aerobic respiration take place?", a: "Mitochondria", exp: "Mitochondria release energy from glucose for the cell to use." },
+      { id: 5, topic: "Cell Biology", q: "What is the function of ribosomes in a cell?", a: "Protein synthesis (making proteins)", exp: "Ribosomes join amino acids together to make proteins." },
+      { id: 6, topic: "Cell Biology", q: "Name the three parts found in a plant cell that are NOT in an animal cell.", a: "Cell wall, chloroplasts, and permanent vacuole", exp: "Animal cells never have a cellulose cell wall, chloroplasts, or a permanent vacuole." },
+      { id: 7, topic: "Cell Biology", q: "What is a plant cell wall made of, and what is its job?", a: "Made of cellulose; it strengthens and supports the cell.", exp: "Cellulose makes the plant cell wall rigid so the cell doesn't burst." },
+      { id: 8, topic: "Cell Biology", q: "What do chloroplasts contain, and what is their function?", a: "They contain green chlorophyll to absorb light for photosynthesis.", exp: "Photosynthesis makes food (glucose) for the plant." },
+      { id: 9, topic: "Cell Biology", q: "What is found inside the permanent vacuole of a plant cell?", a: "Cell sap (a weak solution of sugar and salts)", exp: "It helps keep the plant cell turgid (firm)." },
+      { id: 10, topic: "Cell Biology", q: "Are bacterial cells prokaryotic or eukaryotic?", a: "Prokaryotic", exp: "Plant and animal cells are eukaryotic (have a nucleus); bacteria are prokaryotic (no nucleus)." },
+      { id: 11, topic: "Cell Biology", q: "Where is DNA found in a bacterial cell if it has no nucleus?", a: "A single loop of DNA floating in the cytoplasm, plus small rings called plasmids.", exp: "Prokaryotes do not have a membrane-bound nucleus." },
+      { id: 12, topic: "Cell Biology", q: "What are plasmids in bacterial cells?", a: "Small rings of DNA", exp: "Plasmids carry extra genes, such as antibiotic resistance." },
+      { id: 13, topic: "Cell Biology", q: "How is a sperm cell adapted for its function?", a: "It has a long tail to swim, lots of mitochondria for energy, and enzymes in the head.", exp: "The enzymes digest the egg cell membrane during fertilisation." },
+      { id: 14, topic: "Cell Biology", q: "How is a root hair cell adapted to absorb water and mineral ions?", a: "It has a long projection that gives it a large surface area.", exp: "Root hair cells also have no chloroplasts because they are underground." },
+      { id: 15, topic: "Cell Biology", q: "What is the formula for calculating Magnification?", a: "Magnification = Image size ÷ Actual size", exp: "Remember the I AM triangle: Image on top, Actual × Magnification on the bottom." },
+      { id: 16, topic: "Cell Biology", q: "Why are electron microscopes better than light microscopes?", a: "They have a much higher magnification and higher resolution.", exp: "This lets scientists see tiny sub-cellular structures like ribosomes and plasmids." },
+      { id: 17, topic: "Cell Biology", q: "How many chromosomes are found in a normal human body cell?", a: "46 chromosomes (23 pairs)", exp: "Half (23) come from the mother and half (23) from the father." },
+      { id: 18, topic: "Cell Biology", q: "What is produced during Mitosis (cell division)?", a: "Two genetically identical daughter cells", exp: "Mitosis is used for growth and repairing damaged tissues." },
+      { id: 19, topic: "Cell Biology", q: "What must happen inside a cell BEFORE it divides by mitosis?", a: "It grows, increases the number of ribosomes and mitochondria, and duplicates its DNA.", exp: "This is the first stage of the cell cycle." },
+      { id: 20, topic: "Cell Biology", q: "What is a stem cell?", a: "An undifferentiated cell that can divide and turn into many different types of cells.", exp: "Embryonic stem cells can turn into ANY type of human cell." },
+      { id: 21, topic: "Cell Biology", q: "Where are stem cells found in plants?", a: "In the meristem tissue (at the tips of roots and shoots)", exp: "Plant meristem cells can differentiate into any type of plant cell throughout the plant's life." },
+      { id: 22, topic: "Cell Biology", q: "What is Diffusion?", a: "The spreading out of particles from an area of high concentration to low concentration.", exp: "Diffusion is passive—it does NOT require energy from respiration." },
+      { id: 23, topic: "Cell Biology", q: "Name three factors that speed up the rate of diffusion.", a: "Higher temperature, larger surface area, and a steeper concentration gradient.", exp: "Higher temperature gives particles more kinetic energy to move faster." },
+      { id: 24, topic: "Cell Biology", q: "What is Osmosis?", a: "The movement of water from a dilute solution to a concentrated solution through a partially permeable membrane.", exp: "Always mention WATER and a PARTIALLY PERMEABLE MEMBRANE for full marks." },
+      { id: 25, topic: "Cell Biology", q: "What is Active Transport?", a: "Movement of particles from low concentration to high concentration using energy from respiration.", exp: "Examples: mineral ions into plant root hairs, and glucose absorbed in the small intestine." },
+
+      // TOPIC 2: ORGANISATION (26 - 50)
+      { id: 26, topic: "Organisation", q: "Put these in order from smallest to largest: Organ, Cell, Organ System, Tissue.", a: "Cell → Tissue → Organ → Organ System", exp: "Cells make up tissues, tissues make up organs, and organs work together in systems." },
+      { id: 27, topic: "Organisation", q: "What is the definition of a Tissue?", a: "A group of cells with a similar structure and function working together.", exp: "For example, muscular tissue contracts to bring about movement." },
+      { id: 28, topic: "Organisation", q: "What is an Enzyme?", a: "A biological catalyst made of protein that speeds up chemical reactions in living things.", exp: "Enzymes are not used up in the reaction." },
+      { id: 29, topic: "Organisation", q: "What is the special region on an enzyme where the substrate fits?", a: "The active site", exp: "This is known as the 'Lock and Key' model because the active site has a specific shape." },
+      { id: 30, topic: "Organisation", q: "What happens to an enzyme if the temperature gets too high?", a: "It denatures (the active site changes shape so the substrate no longer fits).", exp: "Never say an enzyme 'dies'—enzymes are not alive! Always use the word 'denatures'." },
+      { id: 31, topic: "Organisation", q: "What does the enzyme Amylase break down, and what does it produce?", a: "Breaks down starch into simple sugars (maltose/glucose).", exp: "Amylase is a carbohydrase made in the salivary glands, pancreas, and small intestine." },
+      { id: 32, topic: "Organisation", q: "What do Protease enzymes break down, and what do they produce?", a: "Break down proteins into amino acids.", exp: "Proteases are made in the stomach (pepsin), pancreas, and small intestine." },
+      { id: 33, topic: "Organisation", q: "What do Lipase enzymes break down, and what do they produce?", a: "Break down lipids (fats and oils) into glycerol and fatty acids.", exp: "Lipases are produced in the pancreas and small intestine." },
+      { id: 34, topic: "Organisation", q: "Where is Bile made, and where is it stored?", a: "Made in the liver, stored in the gall bladder.", exp: "Bile is released into the small intestine." },
+      { id: 35, topic: "Organisation", q: "What are the two main functions of Bile in digestion?", a: "Neutralises hydrochloric acid from the stomach and emulsifies fats into tiny droplets.", exp: "Emulsifying fats gives a larger surface area for lipase enzymes to work faster." },
+      { id: 36, topic: "Organisation", q: "What are the tiny air sacs in the lungs where gas exchange happens?", a: "Alveoli", exp: "Alveoli have a huge surface area, thin walls, and a good blood supply for fast diffusion." },
+      { id: 37, topic: "Organisation", q: "Which side of the heart pumps oxygenated blood around the whole body?", a: "The left side (Left Ventricle)", exp: "The left ventricle has a thicker muscle wall because it has to pump blood all around the body." },
+      { id: 38, topic: "Organisation", q: "Where are the natural pacemaker cells located in the heart?", a: "In the wall of the right atrium", exp: "They send electrical impulses to make the heart muscle contract regularly." },
+      { id: 39, topic: "Organisation", q: "How are Arteries adapted to carry blood away from the heart at high pressure?", a: "They have thick walls containing muscle and elastic fibres, and a narrow lumen.", exp: "Elastic fibres allow arteries to stretch and spring back as blood pulses through." },
+      { id: 40, topic: "Organisation", q: "Why do Veins have valves?", a: "To prevent blood from flowing backwards (since blood pressure in veins is low).", exp: "Veins also have thinner walls and a wider lumen than arteries." },
+      { id: 41, topic: "Organisation", q: "How are Capillaries adapted for diffusion of oxygen and glucose into cells?", a: "Their walls are only one cell thick, giving a very short diffusion pathway.", exp: "Capillaries form a huge network reaching every cell in the body." },
+      { id: 42, topic: "Organisation", q: "Name the four main components of human blood.", a: "Plasma, Red blood cells, White blood cells, and Platelets", exp: "Plasma is the yellow liquid that carries dissolved substances and blood cells." },
+      { id: 43, topic: "Organisation", q: "How are Red Blood Cells adapted to carry oxygen?", a: "They have no nucleus (more room for haemoglobin) and a biconcave disc shape (large surface area).", exp: "Haemoglobin binds to oxygen in the lungs to form oxyhaemoglobin." },
+      { id: 44, topic: "Organisation", q: "What is the job of Platelets in the blood?", a: "They are small cell fragments that help the blood to clot at a wound.", exp: "Blood clotting stops excessive bleeding and stops microorganisms entering the body." },
+      { id: 45, topic: "Organisation", q: "What happens in Coronary Heart Disease (CHD)?", a: "Layers of fatty material (cholesterol) build up inside the coronary arteries, narrowing them.", exp: "This reduces blood flow and oxygen to the heart muscle, which can cause a heart attack." },
+      { id: 46, topic: "Organisation", q: "Compare Stents and Statins for treating Coronary Heart Disease.", a: "Stents are wire mesh tubes that keep arteries open; Statins are drugs taken to lower blood cholesterol.", exp: "Stents work immediately but require surgery; statins have no surgery risk but must be taken daily." },
+      { id: 47, topic: "Organisation", q: "What is the difference between a Benign tumour and a Malignant tumour?", a: "Benign tumours stay in one place (not cancerous); Malignant tumours invade other tissues and spread (cancerous).", exp: "Malignant tumour cells can break off and travel in the blood to form secondary tumours." },
+      { id: 48, topic: "Organisation", q: "Which plant tissue transports water and mineral ions from roots to leaves?", a: "Xylem", exp: "Xylem tubes are made of dead cells strengthened with rings of lignin. This process is transpiration." },
+      { id: 49, topic: "Organisation", q: "Which plant tissue transports dissolved sugars (food) up and down the plant?", a: "Phloem", exp: "This movement of cell sap/sugars through phloem is called translocation." },
+      { id: 50, topic: "Organisation", q: "What is the job of Guard Cells in a plant leaf?", a: "They open and close the stomata (tiny pores) to control gas exchange and water loss.", exp: "Most stomata are on the underside of the leaf where it is cooler and shaded." },
+
+      // TOPIC 3: INFECTION AND RESPONSE (51 - 75)
+      { id: 51, topic: "Infection & Response", q: "What is a Pathogen?", a: "A microorganism that causes an infectious (communicable) disease.", exp: "The 4 types of pathogens are bacteria, viruses, fungi, and protists." },
+      { id: 52, topic: "Infection & Response", q: "How do Bacteria make us feel ill?", a: "They reproduce rapidly inside the body and produce toxins (poisons) that damage tissues.", exp: "Bacterial infections can be treated with antibiotics." },
+      { id: 53, topic: "Infection & Response", q: "How do Viruses make us feel ill?", a: "They live and reproduce inside our cells, causing the cells to burst and die.", exp: "Because viruses live inside body cells, it is difficult to make drugs that kill them without harming our cells." },
+      { id: 54, topic: "Infection & Response", q: "What type of pathogen causes Measles, and how is it spread?", a: "A virus; spread by droplets when an infected person coughs or sneezes.", exp: "Symptoms include a fever and a red skin rash. Most children are vaccinated against it." },
+      { id: 55, topic: "Infection & Response", q: "What type of pathogen causes HIV, and what does it attack?", a: "A virus; it attacks the body's immune system (white blood cells).", exp: "HIV is spread by sexual contact or exchanging bodily fluids (e.g. sharing needles). Controlled with antiretroviral drugs." },
+      { id: 56, topic: "Infection & Response", q: "What is Tobacco Mosaic Virus (TMV), and how does it affect plants?", a: "A plant virus that causes a mosaic pattern of discolouration on leaves.", exp: "Less green chlorophyll means less photosynthesis, so the plant cannot grow properly." },
+      { id: 57, topic: "Infection & Response", q: "What type of pathogen causes Salmonella food poisoning?", a: "Bacteria (spread by eating undercooked poultry/food or food prepared unhygienically).", exp: "Symptoms include fever, abdominal cramps, vomiting, and diarrhoea." },
+      { id: 58, topic: "Infection & Response", q: "What type of pathogen causes Gonorrhoea, and how is its spread prevented?", a: "Bacteria (a sexually transmitted disease); prevented by using barrier contraception like a condom.", exp: "Treated with antibiotics, though many strains have become resistant to penicillin." },
+      { id: 59, topic: "Infection & Response", q: "What type of pathogen causes Rose Black Spot in plants?", a: "A fungus (causes purple or black spots on rose leaves, which turn yellow and drop off).", exp: "Spread by water or wind; treated using fungicides or removing/destroying affected leaves." },
+      { id: 60, topic: "Infection & Response", q: "What type of pathogen causes Malaria, and how is it spread?", a: "A protist; spread by female mosquitoes acting as vectors.", exp: "Prevented by stopping mosquitoes breeding (draining stagnant water) and using mosquito nets." },
+      { id: 61, topic: "Infection & Response", q: "How does the human skin defend the body against pathogens?", a: "Acts as a physical barrier and forms scabs when cut.", exp: "The skin also secretes antimicrobial substances that kill pathogens." },
+      { id: 62, topic: "Infection & Response", q: "How do the trachea and bronchi stop pathogens reaching the lungs?", a: "Goblet cells produce sticky mucus to trap pathogens, and cilia (tiny hairs) sweep the mucus up to the throat.", exp: "The mucus is then swallowed into the stomach." },
+      { id: 63, topic: "Infection & Response", q: "How does the stomach defend the body against pathogens in food and drink?", a: "It produces hydrochloric acid, which kills most pathogens.", exp: "This is part of the body's non-specific defence system." },
+      { id: 64, topic: "Infection & Response", q: "What are the THREE ways White Blood Cells defend the body against pathogens?", a: "1. Phagocytosis (engulfing and digesting pathogens), 2. Producing antibodies, 3. Producing antitoxins.", exp: "Memorise these three bullet points—they frequently come up as a 3-mark question!" },
+      { id: 65, topic: "Infection & Response", q: "What is inside a Vaccine?", a: "Small quantities of dead or inactive forms of a pathogen.", exp: "It stimulates white blood cells to produce antibodies without making you ill." },
+      { id: 66, topic: "Infection & Response", q: "Why doesn't a vaccinated person get ill if they catch the real pathogen later?", a: "Memory white blood cells quickly produce lots of the specific antibodies to destroy the pathogen.", exp: "This secondary immune response is much faster and stronger." },
+      { id: 67, topic: "Infection & Response", q: "Why don't Antibiotics cure viral diseases like the flu or a cold?", a: "Antibiotics only kill bacteria; viruses live inside host body cells where antibiotics cannot reach them.", exp: "Overusing antibiotics for viral infections leads to antibiotic-resistant bacteria." },
+      { id: 68, topic: "Infection & Response", q: "What do Painkillers (like paracetamol or aspirin) actually do?", a: "They relieve the symptoms of disease (like pain and fever), but they do NOT kill the pathogens.", exp: "Your immune system still has to destroy the pathogens." },
+      { id: 69, topic: "Infection & Response", q: "Which plant does the heart drug Digitalis originate from?", a: "Foxgloves", exp: "Digitalis is used to treat heart problems." },
+      { id: 70, topic: "Infection & Response", q: "Where did the painkiller Aspirin originally come from?", a: "Willow tree bark", exp: "Many traditional drugs were extracted from plants and microorganisms." },
+      { id: 71, topic: "Infection & Response", q: "Who discovered Penicillin, and what did it come from?", a: "Alexander Fleming; discovered from Penicillium mould.", exp: "Penicillin was the first antibiotic." },
+      { id: 72, topic: "Infection & Response", q: "What three qualities are new drugs tested for during drug trials?", a: "Toxicity (is it safe?), Efficacy (does it work?), and Dose (how much is needed?).", exp: "Memorise: Toxicity, Efficacy, Dose." },
+      { id: 73, topic: "Infection & Response", q: "What are new drugs tested on during Preclinical Testing (in the lab)?", a: "Cells, tissues, and live animals.", exp: "This checks toxicity and efficacy before testing on humans." },
+      { id: 74, topic: "Infection & Response", q: "What is a Placebo in clinical trials?", a: "A fake pill or injection that contains no active drug.", exp: "Used to make sure improvements aren't just psychological (the placebo effect)." },
+      { id: 75, topic: "Infection & Response", q: "What is a Double-Blind Trial?", a: "Neither the patients nor the doctors know who has been given the real drug or the placebo until the end.", exp: "This removes bias when doctors record the results." },
+
+      // TOPIC 4: BIOENERGETICS & REQUIRED PRACTICALS (76 - 100)
+      { id: 76, topic: "Bioenergetics & Practicals", q: "What is the word equation for Photosynthesis?", a: "Carbon dioxide + Water → Glucose + Oxygen (in the presence of light and chlorophyll)", exp: "Notice this is the exact reverse of aerobic respiration!" },
+      { id: 77, topic: "Bioenergetics & Practicals", q: "Is Photosynthesis an endothermic or exothermic reaction?", a: "Endothermic (it takes in energy from light).", exp: "Light energy is absorbed by green chlorophyll in the chloroplasts." },
+      { id: 78, topic: "Bioenergetics & Practicals", q: "Name four factors that can limit the rate of photosynthesis.", a: "Light intensity, Carbon dioxide concentration, Temperature, and Amount of chlorophyll.", exp: "If temperature gets too high (above 45°C), plant enzymes denature and photosynthesis stops." },
+      { id: 79, topic: "Bioenergetics & Practicals", q: "Why do plants convert glucose into Starch for storage?", a: "Starch is insoluble in water, so it doesn't draw water into cells by osmosis and make them swell.", exp: "Glucose is soluble, so storing it directly would upset the water balance of the plant." },
+      { id: 80, topic: "Bioenergetics & Practicals", q: "What mineral ion do plants absorb from soil to combine with glucose to make amino acids (proteins)?", a: "Nitrate ions", exp: "Glucose + Nitrate ions → Amino acids → Proteins for growth." },
+      { id: 81, topic: "Bioenergetics & Practicals", q: "What is the word equation for Aerobic Respiration?", a: "Glucose + Oxygen → Carbon dioxide + Water (+ energy released)", exp: "Aerobic respiration uses oxygen and releases a large amount of energy in the mitochondria." },
+      { id: 82, topic: "Bioenergetics & Practicals", q: "Is Respiration an exothermic or endothermic reaction?", a: "Exothermic (it transfers energy to the environment continuously in all living cells).", exp: "Organisms use this energy for chemical reactions, muscle contraction, and keeping warm." },
+      { id: 83, topic: "Bioenergetics & Practicals", q: "What is the word equation for Anaerobic Respiration in human muscle cells?", a: "Glucose → Lactic acid", exp: "Happens during vigorous exercise when not enough oxygen can reach the muscles. Releases much less energy." },
+      { id: 84, topic: "Bioenergetics & Practicals", q: "What does a build-up of Lactic Acid in muscles cause?", a: "Muscle fatigue (pain/cramps) and muscles stop contracting efficiently.", exp: "After exercise, you breathe heavily to take in extra oxygen to break down the lactic acid." },
+      { id: 85, topic: "Bioenergetics & Practicals", q: "What is the word equation for Anaerobic Respiration in Yeast cells?", a: "Glucose → Ethanol + Carbon dioxide", exp: "In yeast, this is called Fermentation. Used to make bread (CO2 makes it rise) and alcohol (ethanol)." },
+      { id: 86, topic: "Bioenergetics & Practicals", q: "What three changes happen to your body during exercise?", a: "Heart rate increases, breathing rate increases, and breath volume (depth of breathing) increases.", exp: "This supplies more oxygenated blood and glucose to the muscles for faster aerobic respiration." },
+      { id: 87, topic: "Bioenergetics & Practicals", q: "What is Metabolism?", a: "The sum of all the chemical reactions in a cell or the body, controlled by enzymes.", exp: "Examples include making starch from glucose, making proteins from amino acids, and breaking down excess protein into urea." },
+      { id: 88, topic: "Bioenergetics & Practicals", q: "[Practical] What chemical is used to test for Starch, and what is the positive colour change?", a: "Iodine solution; turns from orange-brown to blue-black.", exp: "Used in both the Food Tests practical and the Amylase Enzyme practical." },
+      { id: 89, topic: "Bioenergetics & Practicals", q: "[Practical] How do you test a food sample for Reducing Sugars (Glucose)?", a: "Add Benedict's solution and heat in a warm water bath (80°C); turns from blue to brick-red.", exp: "Don't forget to mention HEATING the Benedict's solution!" },
+      { id: 90, topic: "Bioenergetics & Practicals", q: "[Practical] What reagent is used to test for Protein, and what is the positive colour change?", a: "Biuret solution; turns from blue to purple/lilac.", exp: "No heating is required for the Biuret protein test." },
+      { id: 91, topic: "Bioenergetics & Practicals", q: "[Practical] How do you test for Lipids (fats and oils)?", a: "Add ethanol and water and shake; forms a cloudy white emulsion.", exp: "Alternatively, Sudan III stain produces a bright red layer on top." },
+      { id: 92, topic: "Bioenergetics & Practicals", q: "[Practical] Why do we add a drop of Iodine to onion cells when making a microscope slide?", a: "To stain the cells so that sub-cellular structures like the nucleus are easier to see.", exp: "We also lower the coverslip at an angle to prevent trapping air bubbles." },
+      { id: 93, topic: "Bioenergetics & Practicals", q: "[Practical] In the Osmosis potato practical, why must you blot the potato cylinders with a paper towel before weighing them?", a: "To remove excess surface water so you only measure water that entered the cells by osmosis.", exp: "This improves the accuracy of the mass measurement." },
+      { id: 94, topic: "Bioenergetics & Practicals", q: "[Practical] In the Osmosis practical, what does it mean if the potato cylinder does NOT change mass?", a: "The concentration of sugar/salt inside the potato cells is equal to the solution outside.", exp: "There is no net movement of water by osmosis." },
+      { id: 95, topic: "Bioenergetics & Practicals", q: "[Practical] In the Pondweed Photosynthesis practical, how do you change the light intensity?", a: "Move the lamp to different distances from the beaker containing the pondweed.", exp: "Further away = lower light intensity." },
+      { id: 96, topic: "Bioenergetics & Practicals", q: "[Practical] In the Pondweed practical, how can you measure the volume of oxygen more accurately than counting bubbles?", a: "Collect the gas in an inverted measuring cylinder or a gas syringe.", exp: "Bubbles can be different sizes and too fast to count accurately by eye." },
+      { id: 97, topic: "Bioenergetics & Practicals", q: "[Practical] In the Enzymes practical, what is the role of the Buffer solution?", a: "To keep the pH at a set value.", exp: "A water bath is also used to keep the temperature constant (a control variable)." },
+      { id: 98, topic: "Bioenergetics & Practicals", q: "[Exam Skill] What is an Independent Variable in an investigation?", a: "The factor that you deliberately change.", exp: "Remember: Independent = I change it." },
+      { id: 99, topic: "Bioenergetics & Practicals", q: "[Exam Skill] What is a Dependent Variable in an investigation?", a: "The factor that you measure to get your results.", exp: "Remember: Dependent = Data you measure." },
+      { id: 100, topic: "Bioenergetics & Practicals", q: "[Exam Skill] What should you do with an Anomalous result (an odd result that doesn't fit the pattern) when calculating a mean?", a: "Ignore/exclude the anomaly and calculate the mean using only the remaining repeats.", exp: "Common 2-mark maths question on AQA Foundation papers!" }
+    ];
+
+    // ==========================================
+    // APP STATE & STORAGE
+    // ==========================================
+    let currentDeck = [...QUESTIONS_DB];
+    let currentCardIndex = 0;
+    let isFlipped = false;
+    let masteredIds = JSON.parse(localStorage.getItem('bio_mastered_2026') || '[]');
+    let bestQuizScore = parseInt(localStorage.getItem('bio_best_quiz_2026') || '0', 10);
+
+    // Quiz State
+    let activeQuizQuestions = [];
+    let currentQuizIndex = 0;
+    let currentQuizScore = 0;
+    let quizAnswered = false;
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      updateStatsUI();
+      renderFlashcard();
+      renderQuestionBank();
+
+      // Keyboard navigation for flashcards
+      document.addEventListener('keydown', (e) => {
+        const fcView = document.getElementById('view-flashcards');
+        if (fcView.classList.contains('hidden')) return;
+        if (e.code === 'Space') {
+          e.preventDefault();
+          flipCard();
+        } else if (e.code === 'ArrowRight') {
+          nextCard();
+        } else if (e.code === 'ArrowLeft') {
+          prevCard();
+        }
+      });
+    });
+
+    // ==========================================
+    // NAVIGATION TABS
+    // ==========================================
+    function switchTab(tab) {
+      ['flashcards', 'quiz', 'bank'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-${t}`);
+        btn.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:text-white";
+      });
+
+      document.getElementById(`view-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tab}`);
+      activeBtn.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-500 text-slate-950 shadow";
+    }
+
+    function updateStatsUI() {
+      document.getElementById('stat-mastered').textContent = masteredIds.length;
+      document.getElementById('stat-best-quiz').textContent = `${bestQuizScore} / 10`;
+    }
+
+    // ==========================================
+    // FLASHCARD LOGIC
+    // ==========================================
+    function renderFlashcard() {
+      const card = currentDeck[currentCardIndex];
+      if (!card) return;
+
+      // Reset flip state smoothly
+      isFlipped = false;
+      document.getElementById('flashcard-inner').classList.remove('rotate-y-180');
+
+      document.getElementById('fc-topic-badge').textContent = card.topic;
+      document.getElementById('fc-counter').textContent = `Card ${currentCardIndex + 1} of ${currentDeck.length} (#${card.id})`;
+      document.getElementById('fc-question').textContent = card.q;
+      document.getElementById('fc-answer').textContent = card.a;
+      document.getElementById('fc-explanation').textContent = card.exp;
+
+      const isMastered = masteredIds.includes(card.id);
+      const indicator = document.getElementById('fc-mastered-indicator');
+      const masterBtn = document.getElementById('btn-master');
+
+      if (isMastered) {
+        indicator.classList.remove('hidden');
+        masterBtn.className = "flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold transition active:scale-95";
+        masterBtn.querySelector('span').textContent = "Mastered ✓";
+      } else {
+        indicator.classList.add('hidden');
+        masterBtn.className = "flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 border border-emerald-500/40 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 font-bold transition active:scale-95";
+        masterBtn.querySelector('span').textContent = "Mark as Mastered";
+      }
+    }
+
+    function flipCard() {
+      isFlipped = !isFlipped;
+      const inner = document.getElementById('flashcard-inner');
+      if (isFlipped) {
+        inner.classList.add('rotate-y-180');
+      } else {
+        inner.classList.remove('rotate-y-180');
+      }
+    }
+
+    function nextCard() {
+      currentCardIndex = (currentCardIndex + 1) % currentDeck.length;
+      renderFlashcard();
+    }
+
+    function prevCard() {
+      currentCardIndex = (currentCardIndex - 1 + currentDeck.length) % currentDeck.length;
+      renderFlashcard();
+    }
+
+    function filterFlashcards(topic) {
+      if (topic === 'All') {
+        currentDeck = [...QUESTIONS_DB];
+      } else {
+        currentDeck = QUESTIONS_DB.filter(q => q.topic === topic);
+      }
+      currentCardIndex = 0;
+
+      // Update button styles
+      const buttons = document.querySelectorAll('#topic-filters .topic-btn');
+      buttons.forEach(btn => {
+        if (btn.textContent.includes(topic === 'All' ? 'All Topics' : topic)) {
+          btn.className = "topic-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-slate-950 transition";
+        } else {
+          btn.className = "topic-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+        }
+      });
+
+      renderFlashcard();
+    }
+
+    function shuffleFlashcards() {
+      for (let i = currentDeck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
+      }
+      currentCardIndex = 0;
+      renderFlashcard();
+    }
+
+    function toggleMastered() {
+      const card = currentDeck[currentCardIndex];
+      const idx = masteredIds.indexOf(card.id);
+      if (idx > -1) {
+        masteredIds.splice(idx, 1);
+      } else {
+        masteredIds.push(card.id);
+      }
+      localStorage.setItem('bio_mastered_2026', JSON.stringify(masteredIds));
+      updateStatsUI();
+      renderFlashcard();
+      renderQuestionBank();
+    }
+
+    function resetMastered() {
+      if (confirm("Reset all mastered cards back to 0?")) {
+        masteredIds = [];
+        localStorage.setItem('bio_mastered_2026', '[]');
+        updateStatsUI();
+        renderFlashcard();
+        renderQuestionBank();
+      }
+    }
+
+    // ==========================================
+    // 10-QUESTION RANDOM QUIZ ENGINE
+    // ==========================================
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function startNewQuiz() {
+      const selectedTopic = document.getElementById('quiz-topic-select').value;
+      const pool = selectedTopic === 'All'
+        ? QUESTIONS_DB
+        : QUESTIONS_DB.filter(item => item.topic === selectedTopic);
+
+      // Randomly pick 10 questions from the pool
+      activeQuizQuestions = shuffleArray(pool).slice(0, 10);
+      currentQuizIndex = 0;
+      currentQuizScore = 0;
+
+      document.getElementById('quiz-start-screen').classList.add('hidden');
+      document.getElementById('quiz-results-screen').classList.add('hidden');
+      document.getElementById('quiz-active-screen').classList.remove('hidden');
+
+      renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+      quizAnswered = false;
+      const qObj = activeQuizQuestions[currentQuizIndex];
+
+      document.getElementById('quiz-progress-text').textContent = `Question ${currentQuizIndex + 1} of 10`;
+      document.getElementById('quiz-topic-pill').textContent = qObj.topic;
+      document.getElementById('quiz-score-live').textContent = `Score: ${currentQuizScore}`;
+      document.getElementById('quiz-progress-bar').style.width = `${((currentQuizIndex + 1) / 10) * 100}%`;
+      document.getElementById('quiz-question-text').textContent = qObj.q;
+
+      document.getElementById('quiz-feedback').classList.add('hidden');
+      document.getElementById('quiz-next-btn').classList.add('hidden');
+
+      // Generate 3 smart distractors from the same topic
+      const sameTopicPool = QUESTIONS_DB.filter(item => item.topic === qObj.topic && item.id !== qObj.id);
+      const distractors = shuffleArray(sameTopicPool).slice(0, 3).map(item => item.a);
+      const options = shuffleArray([qObj.a, ...distractors]);
+
+      const optionsContainer = document.getElementById('quiz-options');
+      optionsContainer.innerHTML = '';
+
+      options.forEach((optText, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left p-4 rounded-2xl bg-slate-900/90 border border-slate-700 hover:border-emerald-500/60 text-slate-200 text-sm sm:text-base font-medium transition flex items-start gap-3";
+        btn.innerHTML = `
+          <span class="w-6 h-6 rounded-lg bg-slate-800 text-slate-400 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">${['A','B','C','D'][idx]}</span>
+          <span>${optText}</span>
+        `;
+        btn.onclick = () => handleQuizAnswer(btn, optText, qObj);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function handleQuizAnswer(clickedBtn, selectedText, qObj) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+
+      const isCorrect = selectedText === qObj.a;
+      if (isCorrect) currentQuizScore++;
+
+      document.getElementById('quiz-score-live').textContent = `Score: ${currentQuizScore}`;
+
+      // Highlight buttons
+      const allButtons = document.getElementById('quiz-options').querySelectorAll('button');
+      allButtons.forEach(btn => {
+        const text = btn.querySelectorAll('span')[1].textContent;
+        if (text === qObj.a) {
+          btn.className = "w-full text-left p-4 rounded-2xl bg-emerald-500/20 border-2 border-emerald-500 text-emerald-200 text-sm sm:text-base font-bold transition flex items-start gap-3";
+        } else if (btn === clickedBtn && !isCorrect) {
+          btn.className = "w-full text-left p-4 rounded-2xl bg-rose-500/20 border-2 border-rose-500 text-rose-200 text-sm sm:text-base font-medium transition flex items-start gap-3";
+        } else {
+          btn.className = "w-full text-left p-4 rounded-2xl bg-slate-900/40 border border-slate-800 text-slate-500 text-sm sm:text-base font-medium transition flex items-start gap-3 opacity-60";
+        }
+      });
+
+      // Show explanation
+      const fbBox = document.getElementById('quiz-feedback');
+      const fbTitle = document.getElementById('quiz-feedback-title');
+      const fbDesc = document.getElementById('quiz-feedback-desc');
+
+      fbBox.classList.remove('hidden');
+      if (isCorrect) {
+        fbBox.className = "p-4 rounded-2xl border bg-emerald-950/50 border-emerald-500/40 text-sm space-y-1";
+        fbTitle.className = "font-bold text-base text-emerald-400";
+        fbTitle.textContent = "✓ Correct! Spot on the AQA Mark Scheme.";
+      } else {
+        fbBox.className = "p-4 rounded-2xl border bg-rose-950/50 border-rose-500/40 text-sm space-y-1";
+        fbTitle.className = "font-bold text-base text-rose-400";
+        fbTitle.textContent = "✗ Not quite!";
+      }
+      fbDesc.textContent = qObj.exp;
+
+      const nextBtn = document.getElementById('quiz-next-btn');
+      nextBtn.textContent = currentQuizIndex === 9 ? "See Final Grade →" : "Next Question →";
+      nextBtn.classList.remove('hidden');
+    }
+
+    function nextQuizQuestion() {
+      if (currentQuizIndex < 9) {
+        currentQuizIndex++;
+        renderQuizQuestion();
+      } else {
+        showQuizResults();
+      }
+    }
+
+    function showQuizResults() {
+      document.getElementById('quiz-active-screen').classList.add('hidden');
+      document.getElementById('quiz-results-screen').classList.remove('hidden');
+
+      if (currentQuizScore > bestQuizScore) {
+        bestQuizScore = currentQuizScore;
+        localStorage.setItem('bio_best_quiz_2026', bestQuizScore.toString());
+        updateStatsUI();
+      }
+
+      document.getElementById('quiz-final-score').textContent = `${currentQuizScore}/10`;
+
+      let gradeText = "";
+      let msgText = "";
+
+      if (currentQuizScore >= 8) {
+        gradeText = "Grade 5 — Strong Pass (MAX GRADE!)";
+        msgText = "Outstanding work! Grade 5 is the highest possible grade on the AQA Foundation Tier. Keep revising like this and you will smash your 2026 mocks!";
+      } else if (currentQuizScore >= 6) {
+        gradeText = "Grade 4 — Standard Pass";
+        msgText = "Solid pass! You are very close to the top Grade 5 boundary. Review the flashcards for any topics you missed and try another 10-question round.";
+      } else if (currentQuizScore >= 4) {
+        gradeText = "Grade 3";
+        msgText = "Good effort! Spend 15 minutes flipping through the flashcards to lock in the key AQA definitions, then test yourself again.";
+      } else {
+        gradeText = "Grade 2 — Keep Going!";
+        msgText = "Don't worry—this is why we revise! Go topic by topic in the Flashcards tab, mark cards as mastered as you learn them, and try again.";
+      }
+
+      document.getElementById('quiz-final-grade').textContent = gradeText;
+      document.getElementById('quiz-final-msg').textContent = msgText;
+    }
+
+    function resetQuizView() {
+      document.getElementById('quiz-results-screen').classList.add('hidden');
+      document.getElementById('quiz-start-screen').classList.remove('hidden');
+    }
+
+    // ==========================================
+    // ALL 100 QUESTION BANK VIEW
+    // ==========================================
+    function renderQuestionBank() {
+      const query = (document.getElementById('bank-search')?.value || '').toLowerCase();
+      const filtered = QUESTIONS_DB.filter(item =>
+        item.q.toLowerCase().includes(query) ||
+        item.a.toLowerCase().includes(query) ||
+        item.topic.toLowerCase().includes(query)
+      );
+
+      document.getElementById('bank-count').textContent = `Showing ${filtered.length} of 100 questions`;
+      const container = document.getElementById('bank-list');
+      container.innerHTML = '';
+
+      filtered.forEach(item => {
+        const isMastered = masteredIds.includes(item.id);
+        const card = document.createElement('div');
+        card.className = "bg-slate-800/40 border border-slate-700/70 rounded-2xl p-5 flex flex-col justify-between gap-3 hover:border-slate-600 transition";
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-700 text-emerald-400">#${item.id} • ${item.topic}</span>
+              ${isMastered ? '<span class="text-xs font-semibold text-emerald-400">✓ Mastered</span>' : ''}
+            </div>
+            <h4 class="font-bold text-white text-sm sm:text-base mb-2">${item.q}</h4>
+            <p class="text-emerald-300 font-semibold text-sm bg-emerald-950/40 border border-emerald-500/20 rounded-xl p-3">${item.a}</p>
+          </div>
+          <p class="text-xs text-slate-400">${item.exp}</p>
+        `;
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
